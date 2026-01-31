@@ -11,7 +11,7 @@ type User struct {
 	HashPassword string `gorm:"size:255" json:"-"`
 	Role         string `gorm:"size:30;default:user;not null" json:"role"`
 	IsBlocked    bool   `gorm:"default:false;not null" json:"is_blocked"`
-	IsVerifed    bool   `gorm:"default:false;not null" json:"is_verified"`
-	CreateAt     time.Time
-	UpdateAt     time.Time
+	IsVerified   bool   `gorm:"column:is_verified;default:false;not null" json:"is_verified"`
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }

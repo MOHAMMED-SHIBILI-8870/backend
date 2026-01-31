@@ -1,6 +1,7 @@
 package services
 
 import (
+	"backend/config"
 	"backend/models"
 	"crypto/rand"
 	"crypto/sha256"
@@ -13,7 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//generate 6 DIGIT OTP 
+//generate 6 DIGIT OTP
 
 func GenerateOTP() (string,error) {
 	n, err := rand.Int(rand.Reader,big.NewInt(900000))
@@ -68,20 +69,42 @@ func CreateOTP(db *gorm.DB,userID uint,purpose string,expiryMinutes int) (string
 
 
 //verify OTP
+func VerifyOTP(userId uint, otp, purpose string) (bool, error) {
+	err := config.DB.Transaction(func(dt *gorm.DB) error {
+		var entry models.OTP
+		hashedOTP := HashOTP(otp)
 
-func VerifyOTP(db *gorm.DB,userID uint,purpose string,otp string) error{
-	hasedOTP := HashOTP(otp)
+		if err := dt.Where(
+			"user_id = ? AND purpose = ? AND otp_code = ? AND is_used = false AND expires_at > ?",
+			userId, purpose, hashedOTP, time.Now(),
+		).
+			Order("created_at DESC").
+			First(&entry).Error; err != nil {
 
-	var record models.OTP
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("invalid or expired OTP")
+			}
+			return err
+		}
 
-	if err := db.Where(`user_id = ? AND purpose = ? AND otp_code = ? AND is_used = false AND expires_at > ?`,userID,purpose,hasedOTP,time.Now()).
-	First(&record).Error;
-	 err != nil {
-		if errors.Is(err,gorm.ErrRecordNotFound){
-			return errors.New("Invalid or expired OTP")
-		} 
-		return  err
+		if err := dt.Model(&entry).Update("is_used", true).Error; err != nil {
+			return err
+		}
+
+		if purpose == "signup" {
+			if err := dt.Model(&models.User{}).
+				Where("id = ?", userId).
+				Update("is_verified", true).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return false, err
 	}
 
-	return db.Model(&record).Update("is_used",true).Error
+	return true, nil
 }

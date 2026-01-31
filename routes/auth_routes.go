@@ -10,6 +10,6 @@ func AuthRoutes(r *gin.Engine){
 	auth := r.Group("/auth")
 	{
 		auth.POST("/register",controllers.Register)
-		auth.POST("/verify-otp",controllers.VerifyOTP)
+		auth.POST("/verify-otp",controllers.VerifyOTPController)
 	}
 }
