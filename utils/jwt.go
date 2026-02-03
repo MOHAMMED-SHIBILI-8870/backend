@@ -32,25 +32,30 @@ func GenerateRefreshToken()(string,string,error){
 	b:=make([]byte,32)
 	_,err := rand.Read(b)
 	if err != nil{
-		return "","",nil
+		return "","",err
 	}
 
 	token := hex.EncodeToString(b)
 	hash := sha256.Sum256([]byte(token))
 
-	return token,hex.EncodeToString(hash[:]),nil
+	return token,hex.EncodeToString(hash[:]),err
 }
 
 // Save refresh token in db 
 
-func SavaRefreshToken(db *gorm.DB,userId uint,HashedToken string,expiredAt time.Time)error{
-	saveReToken:= models.RefreshToken{
-		UserId: userId,
-		Token: HashedToken,
-		ExpiredAt: expiredAt,
+func SaveRefreshToken(db *gorm.DB, userId uint, hashedToken string, expiresAt time.Time) error {
+
+	db.Where("user_id = ?", userId).Delete(&models.RefreshToken{})
+
+	refreshToken := models.RefreshToken{
+		UserId:    userId,
+		Token:     hashedToken,
+		ExpiredAt: expiresAt,
 	}
-	return db.Create(&saveReToken).Error
+
+	return db.Create(&refreshToken).Error
 }
+
 
 //Validate refresh token
 
@@ -66,7 +71,7 @@ func ValidateRefreshToken(db *gorm.DB,token string)(*models.RefreshToken,error){
 		return nil,errors.New("expired or invalid Refresh token")
 	}
 
-	return &retoken,nil
+	return &retoken,err
 }
 
 // Delete RefreshToken from DB
