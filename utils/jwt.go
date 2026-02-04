@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -38,12 +39,12 @@ func GenerateRefreshToken()(string,string,error){
 	token := hex.EncodeToString(b)
 	hash := sha256.Sum256([]byte(token))
 
-	return token,hex.EncodeToString(hash[:]),err
+	return token,hex.EncodeToString(hash[:]),nil
 }
 
 // Save refresh token in db 
 
-func SaveRefreshToken(db *gorm.DB, userId uint, hashedToken string, expiresAt time.Time) error {
+func SaveRefreshToken(db *gorm.DB, userId uint, hashedToken string,expiresAt time.Time) error {
 
 	db.Where("user_id = ?", userId).Delete(&models.RefreshToken{})
 
@@ -52,6 +53,8 @@ func SaveRefreshToken(db *gorm.DB, userId uint, hashedToken string, expiresAt ti
 		Token:     hashedToken,
 		ExpiredAt: expiresAt,
 	}
+
+	fmt.Println(refreshToken)
 
 	return db.Create(&refreshToken).Error
 }

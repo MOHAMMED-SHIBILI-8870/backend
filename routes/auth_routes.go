@@ -12,6 +12,10 @@ func AuthRoutes(r *gin.Engine){
 		auth.POST("/register",controllers.Register)
 		auth.POST("/verify-otp",controllers.VerifyOTPController)
 		auth.POST("/login",controllers.Login)
+		auth.POST("/forget-pass",controllers.ForgetPassword)
+		auth.POST("/reset-pass",controllers.ResetPassword)
+		auth.POST("/resent-otp",controllers.ResendOtpHandler)
+		auth.POST("/logout",controllers.Logout)
 	}
 
 }
