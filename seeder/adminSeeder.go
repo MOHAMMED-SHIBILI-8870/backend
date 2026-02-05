@@ -28,6 +28,8 @@ func AdminSeeder(db *gorm.DB)error{
 		Email: "admin@gmail.com",
 		HashPassword: hashPass,
 		Role: "admin",
+		IsVerified: true,
+		IsBlocked: false,
 	}
 
 	return  db.Create(&admin).Error

@@ -23,8 +23,13 @@ func main() {
 	}
 
 	r := gin.Default()
+
+	r.LoadHTMLGlob("templates/*")
+
+	r.Static("/static","./static")
 	
 	routes.AuthRoutes(r)
+	routes.ViewRoutes(r)
 
 	r.Run(":8080")
 }

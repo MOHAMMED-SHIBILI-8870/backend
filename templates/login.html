@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="/static/css/login.css" />
+</head>
+
+<body>
+
+<div class="login-container">
+  <div class="content">
+    <div class="logo">spect<span>ɾ</span></div>
+    <div class="title">Welcome</div>
+    <p class="subtitle">Sign in to your admin dashboard</p>
+
+    <form id="loginForm">
+      <div class="input-group">
+        <input type="email" id="email" placeholder="Email" required />
+      </div>
+
+      <div class="input-group">
+        <input type="password" id="password" placeholder="Password" required />
+      </div>
+
+      <button type="submit">Sign In</button>
+      <div id="errorMsg"></div>
+
+      <div class="divider"></div>
+      <div class="footer">Secure Admin Access</div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const toast = document.getElementById("toast");
+
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2500);
+}
+
+document.getElementById("loginForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const error = document.getElementById("errorMsg");
+  const button = this.querySelector("button");
+
+  error.textContent = "";
+  button.disabled = true;
+  button.textContent = "Signing in...";
+
+  try {
+    const res = await fetch("/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.status === "success") {
+      if (data.role === "admin") {
+        localStorage.setItem("access_token", data.access_token);
+        showToast("Admin login successful");
+
+        setTimeout(() => {
+          window.location.href = "/view/dashboard";
+        }, 1800);
+
+      } else {
+        error.textContent = "Access denied: Admins only.";
+      }
+    } else {
+      error.textContent = data.error || "Login failed.";
+    }
+  } catch (err) {
+    error.textContent = "Server error. Try again later.";
+  } finally {
+    button.disabled = false;
+    button.textContent = "Sign In";
+  }
+});
+</script>
+
+</body>
+</html>
