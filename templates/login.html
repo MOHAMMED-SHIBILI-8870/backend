@@ -65,7 +65,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
     const data = await res.json();
 
-    if (res.ok && data.status === "success") {
+    if (res.ok && data.status === "your Logged") {
       if (data.role === "admin") {
         localStorage.setItem("access_token", data.access_token);
         showToast("Admin login successful");

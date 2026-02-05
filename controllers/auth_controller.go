@@ -203,7 +203,7 @@ func Login(c *gin.Context) {
 	c.SetCookie("refresh_token", refreshToken, int(time.Until(expiresAt).Seconds()), "/", "", false, true)
 
 	c.JSON(200, gin.H{
-		"msg":          "your Logged",
+		"status":"your Logged",
 		"role":   users.Role,
 		"access_token": accessToken,
 	})
