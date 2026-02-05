@@ -204,7 +204,8 @@ func Login(c *gin.Context) {
 
 	c.JSON(200, gin.H{
 		"msg":          "your Logged",
-		"access_Token": accessToken,
+		"role":   users.Role,
+		"access_token": accessToken,
 	})
 }
 
