@@ -1,43 +1,43 @@
 package middleware
 
 import (
-	"backend/config"
+	"backend/utils"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware() gin.HandlerFunc{
+func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		header:=c.GetHeader("Authorization")
 
-		if header == ""{
-			c.JSON(http.StatusUnauthorized,gin.H{
-				"error":"Athorization header missing",
+		access_token, err := c.Cookie("access_token")
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "authentication required",
 			})
 			c.Abort()
-			return 
+			return
 		}
 
-		tokenStr:=strings.Replace(header,"","Bearer ",1)
-		claims := jwt.MapClaims{}
-
-		token,err:=jwt.ParseWithClaims(tokenStr,claims,func(t *jwt.Token) (any, error) {
-			return []byte(config.GetEnv("JWT_ACCESS","access")),nil
-		})
-
-		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized,gin.H{
-				"error":"Invalid credentials",
+		userID, role, err := utils.ValidateJwt(access_token)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid token",
 			})
 			c.Abort()
-			return 
+			return
 		}
 
-		c.Set("user_id",uint(claims["user_id"].(float64)))
-		c.Set("role",claims["role"])
+		if role == "admin" {
+			c.JSON(http.StatusForbidden, gin.H{
+				"error": "admins are not allowed",
+			})
+			c.Abort()
+			return
+		}
+		c.Set("userID", userID)
+		c.Set("role", role)
+
 		c.Next()
 	}
 }

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ .title }}</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f8;
+    }
+
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 220px;
+      background-color: #2c3e50;
+      color: white;
+      padding: 20px;
+    }
+
+    .sidebar h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .sidebar ul li {
+      margin-bottom: 12px;
+    }
+
+    .sidebar ul li a {
+      text-decoration: none;
+      color: #ecf0f1;
+      display: block;
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .sidebar ul li a:hover,
+    .sidebar ul li a.active {
+      background-color: #1abc9c;
+      font-weight: bold;
+    }
+
+    /* Main content */
+    .main-content {
+      flex: 1;
+      padding: 30px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    th {
+      background-color: #f4f6f8;
+      font-weight: bold;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr.admin-row {
+      background-color: #fdf6e3; /* light yellow for admins */
+    }
+
+    .actions button {
+      padding: 6px 12px;
+      margin-right: 5px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      color: white;
+    }
+
+    .edit-btn   { background-color: #3498db; }
+    .block-btn  { background-color: #e67e22; }
+    .delete-btn { background-color: #e74c3c; }
+
+    button:disabled {
+      background-color: #bdc3c7;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <h2>Admin</h2>
+    <ul>
+      <li><a href="/view/dashboard" {{if eq .Active "dashboard"}}class="active"{{end}}>Dashboard</a></li>
+      <li><a href="/view/products" {{if eq .Active "products"}}class="active"{{end}}>Products</a></li>
+      <li><a href="/view/users" {{if eq .Active "users"}}class="active"{{end}}>Users</a></li>
+      <li><a href="/view/orders" {{if eq .Active "orders"}}class="active"{{end}}>Orders</a></li>
+      <li><a href="/view/profile" {{if eq .Active "profile"}}class="active"{{end}}>Profile</a></li>
+    </ul>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <h1>Users</h1>
+
+    {{if .error}}
+      <p style="color:red">{{.error}}</p>
+    {{end}}
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Full Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Verified</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {{range .users}}
+        <tr class="{{if eq .Role "admin"}}admin-row{{end}}">
+          <td>{{.ID}}</td>
+          <td>{{.FullName}}</td>
+          <td>{{.Email}}</td>
+          <td>{{.Role}}</td>
+          <td>
+            {{if .IsBlocked}}
+              <span style="color:red;font-weight:bold;">Blocked</span>
+            {{else}}
+              <span style="color:green;font-weight:bold;">Active</span>
+            {{end}}
+          </td>
+          <td>
+            {{if .IsVerified}}
+              <span style="color:green;font-weight:bold;">True</span>
+            {{else}}
+              <span style="color:red;font-weight:bold;">False</span>
+            {{end}}
+          </td>
+        <td class="actions">
+  <a href="/view/users/edit/{{.ID}}">
+    <button class="edit-btn">Edit</button>
+  </a>
+
+  {{if or (eq .Role "admin") (eq .ID $.CurrentUserID)}}
+    <button class="block-btn" disabled title="Cannot block this user">Block</button>
+    <button class="delete-btn" disabled title="Cannot delete this user">Delete</button>
+  {{else}}
+    {{if .IsBlocked}}
+      <button class="block-btn" onclick="unblockUser('{{.ID}}')">Unblock</button>
+    {{else}}
+      <button class="block-btn" onclick="blockUser('{{.ID}}')">Block</button>
+    {{end}}
+    <button class="delete-btn" onclick="deleteUser('{{.ID}}')">Delete</button>
+  {{end}}
+</td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="7" style="text-align:center;">No users found</td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+function blockUser(id) {
+  if (!confirm("Are you sure you want to block this user?")) return;
+
+  fetch(`/admin/users/${id}/block`, { method: "POST" })
+    .then(() => location.reload())
+    .catch(() => alert("Failed to block user"));
+}
+
+function unblockUser(id) {
+  if (!confirm("Are you sure you want to unblock this user?")) return;
+
+  fetch(`/admin/users/${id}/unblock`, { method: "POST" })
+    .then(() => location.reload())
+    .catch(() => alert("Failed to unblock user"));
+}
+
+function deleteUser(id) {
+  if (!confirm("⚠️ This action cannot be undone. Delete user?")) return;
+
+  fetch(`/admin/users/${id}`, { method: "DELETE" })
+    .then(() => location.reload())
+    .catch(() => alert("Failed to delete user"));
+}
+</script>
+
+</body>
+</html>

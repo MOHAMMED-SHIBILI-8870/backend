@@ -15,6 +15,7 @@ func ValidateJwt(tokenStr string) (uint, string, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (any, error) {
 		// Validate signing method
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+
 			return nil, fmt.Errorf("unexpected signing method")
 		}
 		return []byte(secretKey), nil
@@ -25,8 +26,8 @@ func ValidateJwt(tokenStr string) (uint, string, error) {
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		
-		userIDFloat, ok := claims["userId"].(float64)
+
+		userID, ok := claims["user_id"].(float64)
 		if !ok {
 			return 0, "", fmt.Errorf("invalid userId in token")
 		}
@@ -36,7 +37,7 @@ func ValidateJwt(tokenStr string) (uint, string, error) {
 			return 0, "", fmt.Errorf("invalid role in token")
 		}
 
-		return uint(userIDFloat), role, nil
+		return uint(userID), role, nil
 
 	}
 

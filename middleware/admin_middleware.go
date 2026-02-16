@@ -2,33 +2,41 @@ package middleware
 
 import (
 	"backend/utils"
+	"log"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
 func AdminAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.Redirect(http.StatusFound, "/login")
-			c.Abort()
-			return
+		// authHeader := c.GetHeader("Authorization")
+		access_token,err:=c.Cookie("access_token")
+		if err != nil{
+			log.Fatal(err)
 		}
+		log.Println(access_token +"recieved")
 
-		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+		// if authHeader == "" {
+		// 	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
+		// 	return
+		// }
 
-		userId,role, err := utils.ValidateJwt(tokenStr)
+		// tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+
+		userId, role, err := utils.ValidateJwt(access_token)
 		if err != nil {
-			c.Redirect(http.StatusFound, "/login")
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			c.Abort()
 			return
+
 		}
 
 		if role != "admin" {
-			c.AbortWithStatus(http.StatusForbidden)
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"error": "invalid user",
+			})
+			c.Abort()
 			return
 		}
 

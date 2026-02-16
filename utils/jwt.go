@@ -17,7 +17,7 @@ import (
 //generate Access Token
 
 func GenerateAccessToken(userID uint, Role string) (string, error) {
-	Secret_key:=os.Getenv("JWT_ACCESS")
+	Secret_key:=os.Getenv("JWT_SECRETKEY")
 	claims := jwt.MapClaims{
 		"user_id":userID,
 		"role":Role,

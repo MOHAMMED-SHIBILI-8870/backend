@@ -113,15 +113,15 @@ func VerifyOTPController(c *gin.Context) {
 		return
 	}
 
-	if input.Purpose == "signup"{
+	if input.Purpose == "signup" {
 		config.DB.Model(&user).Updates(map[string]interface{}{
-			"is_verified":true,
-			"updated_at":time.Now(),
+			"is_verified": true,
+			"updated_at":  time.Now(),
 		})
 	}
 
-	config.DB.Where("user_id = ? AND purpose = ?",user.ID,input.Purpose).
-	Delete(&models.OTP{})
+	config.DB.Where("user_id = ? AND purpose = ?", user.ID, input.Purpose).
+		Delete(&models.OTP{})
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "OTP verified successfully",
@@ -200,11 +200,12 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	c.SetCookie("access_token", accessToken, 20*120, "/", "", false, false)
 	c.SetCookie("refresh_token", refreshToken, int(time.Until(expiresAt).Seconds()), "/", "", false, true)
 
 	c.JSON(200, gin.H{
-		"status":"your Logged",
-		"role":   users.Role,
+		"status":       "your Logged in",
+		"role":         users.Role,
 		"access_token": accessToken,
 	})
 }
@@ -254,40 +255,40 @@ func ResetPassword(c *gin.Context) {
 		OTP        string `json:"otp" binding:"required"`
 	}
 
-	if err := c.ShouldBindJSON(&input);err != nil{
-		c.String(http.StatusBadRequest,err.Error())
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.String(http.StatusBadRequest, err.Error())
 		return
 	}
 
 	var user models.User
 
-	if err := config.DB.Where("email = ?",input.Email).First(&user).Error;err != nil{
-		c.String(http.StatusNotFound,err.Error())
+	if err := config.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
+		c.String(http.StatusNotFound, err.Error())
 		return
 	}
-	valid,err := services.VerifyOTP(user.ID,input.OTP,"reset_password")
+	valid, err := services.VerifyOTP(user.ID, input.OTP, "reset_password")
 
-	if !valid || err != nil{
-		c.String(http.StatusBadRequest,"Invalid or expired token")
-		return
-	}
-
-	hashedPass,err := utils.HashPassword(input.NewPasword)
-	if err != nil{
-		c.String(http.StatusInternalServerError,err.Error())
+	if !valid || err != nil {
+		c.String(http.StatusBadRequest, "Invalid or expired token")
 		return
 	}
 
-	if err:=config.DB.Model(models.User{}).Where("email = ?",user.Email).
-	Updates(map[string]interface{}{"hash_password":hashedPass,"updated_at":time.Now()}).Error;err != nil{
-		c.String(http.StatusInternalServerError,err.Error())
+	hashedPass, err := utils.HashPassword(input.NewPasword)
+	if err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+		return
 	}
-	
-	config.DB.Where("user_id = ? AND purpose=?",user.ID,"reset_password").Delete(&models.OTP{})
 
-	c.JSON(http.StatusOK,gin.H{
-		"status":"success",
-		"msg":"Password reset successfully",
+	if err := config.DB.Model(models.User{}).Where("email = ?", user.Email).
+		Updates(map[string]interface{}{"hash_password": hashedPass, "updated_at": time.Now()}).Error; err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	config.DB.Where("user_id = ? AND purpose=?", user.ID, "reset_password").Delete(&models.OTP{})
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": "success",
+		"msg":    "Password reset successfully",
 	})
 }
 
@@ -341,23 +342,24 @@ func ResendOtpHandler(c *gin.Context) {
 	})
 }
 
-func Logout(c *gin.Context){
-	refreshToken,err := c.Cookie("refresh_token")
+func Logout(c *gin.Context) {
+	refreshToken, err := c.Cookie("refresh_token")
 
-	if err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error":"Refresh token required"})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Refresh token required"})
 		return
 	}
 
-	if err := utils.DeleteReToken(config.DB,refreshToken);err != nil{
-		c.String(http.StatusInternalServerError,err.Error())
+	if err := utils.DeleteReToken(config.DB, refreshToken); err != nil {
+		c.String(http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.SetCookie("refresh_token","",-1,"/","",false,true)
+	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
 
-	c.JSON(http.StatusOK,gin.H{
-		"status":"success",
-		"message":"Logged out successfully",
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"message": "Logged out successfully",
 	})
 }

@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+  <head>
+    <title>{{.title}}</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial;
+        background: #f4f6f8;
+      }
+      .layout {
+        display: flex;
+        min-height: 100vh;
+      }
+      .sidebar {
+        width: 220px;
+        background: #2c3e50;
+        color: white;
+        padding: 20px;
+      }
+      .sidebar a {
+        color: #ecf0f1;
+        text-decoration: none;
+        display: block;
+        padding: 10px;
+        border-radius: 5px;
+      }
+      .sidebar a.active,
+      .sidebar a:hover {
+        background: #1abc9c;
+        font-weight: bold;
+      }
+      .content {
+        flex: 1;
+        padding: 30px;
+      }
+      .card {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        max-width: 500px;
+      }
+      label {
+        font-weight: bold;
+        display: block;
+        margin-top: 15px;
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+      }
+      button {
+        margin-top: 20px;
+        padding: 10px;
+        background: #3498db;
+        color: white;
+        border: none;
+      }
+      .error {
+        color: red;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      {{template "sidebar.html" .}}
+
+      <div class="content">
+        <div class="card">
+          <h2>Edit Profile</h2>
+
+          {{if .error}}
+          <div class="error">{{.error}}</div>
+          {{end}}
+
+          <form method="POST" action="/view/profile/update">
+            <label>Full Name</label>
+            <input type="text" name="full_name" value="{{.admin.FullName}}" />
+
+            <label>Email</label>
+            <input type="email" name="email" value="{{.admin.Email}}" />
+
+            <button type="submit">Update</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

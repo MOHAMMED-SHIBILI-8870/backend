@@ -11,6 +11,13 @@ func Migrate() {
 		&OTP{},
 		&User{},
 		&RefreshToken{},
+		&Product{},
+		&CartItem{},
+		&WishlistItem{},
+		&Order{},
+		&OrderItem{},
+		&Category{},
+		
 	)
 
 	if err != nil{

@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+  <head>
+    <title>{{.title}}</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial;
+        background: #f4f6f8;
+      }
+      .layout {
+        display: flex;
+        min-height: 100vh;
+      }
+      .sidebar {
+        width: 220px;
+        background: #2c3e50;
+        color: white;
+        padding: 20px;
+      }
+      .sidebar a {
+        color: #ecf0f1;
+        text-decoration: none;
+        display: block;
+        padding: 10px;
+        border-radius: 5px;
+      }
+      .sidebar a.active,
+      .sidebar a:hover {
+        background: #1abc9c;
+        font-weight: bold;
+      }
+      .content {
+        flex: 1;
+        padding: 30px;
+      }
+      .card {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        max-width: 500px;
+      }
+      .row {
+        margin-bottom: 15px;
+      }
+      .label {
+        font-weight: bold;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 15px;
+        background: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      {{template "sidebar.html" .}}
+
+      <div class="content">
+        <div class="card">
+          <h2>Admin Profile</h2>
+
+          <div class="row">
+            <span class="label">Name:</span> {{.admin.FullName}}
+          </div>
+          <div class="row">
+            <span class="label">Email:</span> {{.admin.Email}}
+          </div>
+          <div class="row">
+            <span class="label">Role:</span> {{.admin.Role}}
+          </div>
+
+          <a href="/view/profile/edit" class="btn">Edit Profile</a>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

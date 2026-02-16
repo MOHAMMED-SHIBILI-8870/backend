@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{.title}}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 40px;
+    }
+
+    .card {
+      max-width: 500px;
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+    }
+
+    button {
+      margin-top: 20px;
+      padding: 10px 15px;
+      background: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Edit User</h2>
+
+  <input type="hidden" id="userId" value="{{.user.ID}}">
+
+  <label>Full Name</label>
+  <input type="text" id="fullName" value="{{.user.FullName}}">
+
+  <label>Email (read-only)</label>
+  <input type="email" value="{{.user.Email}}" disabled>
+
+  <label>Role</label>
+  <select id="role">
+    <option value="user" {{if eq .user.Role "user"}}selected{{end}}>User</option>
+    <option value="admin" {{if eq .user.Role "admin"}}selected{{end}}>Admin</option>
+  </select>
+
+  <button onclick="updateUser()">Update User</button>
+</div>
+
+<script>
+function updateUser() {
+  const id = document.getElementById("userId").value;
+
+  fetch(`/admin/users/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      full_name: document.getElementById("fullName").value,
+      role: document.getElementById("role").value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert("User updated successfully");
+    window.location.href = "/view/users";
+  })
+  .catch(err => {
+    alert("Failed to update user");
+  });
+}
+</script>
+
+</body>
+</html>
